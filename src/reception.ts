@@ -1,28 +1,15 @@
 require("@dotenvx/dotenvx").config();
-import {TKinit, TKquery} from "./db";
-
-import {DataSource} from "typeorm";
+import {TKaddcommand, TKinit, TKquery, TKgetallcommands} from "./db";
 import {Button} from "tk-bot/keyboard";
+import {command} from "./entity/admin";
+import {prettify} from "./vik";
+
 console.log(process.env.DB_USER);
 TKinit(
 	process.env?.DB_USER || "no",
 	process.env?.DB_PASS || "no",
 	process.env?.DB_NAME || "no",
 );
-export const AppDataSource = new DataSource({
-	type: "postgres",
-	host: "localhost",
-	port: 5432,
-	username: process.env.DB_USER,
-	password: process.env.DB_PASS,
-	database: process.env.DB_NAME,
-	synchronize: true,
-	logging: true,
-	entities: [],
-	subscribers: [],
-	migrations: [],
-});
-AppDataSource.initialize();
 import {
 	ButtonColor,
 	ButtonColorUnion,
@@ -106,14 +93,28 @@ hearManager.hear(RegExp(""), figure_out);
 async function figure_out(context: MessageContext) {
 	if (TO_ME.test(context?.text || "")) {
 		await testreply(context);
+		if (/!\?док/.test(context?.text || "")) {
+			const allcomms = await TKgetallcommands();
+			const ans = prettify(allcomms);
+			splitsend(context, ans);
+		}
+		if (/!\+док/.test(context?.text || "")) {
+			const cinfo = (context?.text?.substring(6) || "").split("!");
+			const comm: command = new command(
+				cinfo[0],
+				cinfo[1],
+				cinfo[2],
+				cinfo[3],
+				Number(cinfo[4]),
+			);
+			TKaddcommand(comm);
+		}
 		if (/!db/.test(context?.text || "")) {
 			await context.send("Обращаюсь к базе данных...");
 
 			await splitsend(
 				context,
-				JSON.stringify(
-					await AppDataSource.query(context?.text?.substring(4) || ""),
-				),
+				await TKquery(context?.text?.substring(4) || ""),
 			);
 		}
 		if (/!k/.test(context?.text || "")) {

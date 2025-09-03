@@ -10,51 +10,27 @@ function fnfallback(this: cmd_info) {
   return "menu" + this.doc; //TODO : make general menu for any non-tail func
 }
 
-async function create_cmd(this: cmd_info) {
-  const args: String = this.fn.args;
-  const argsa: Array<String> = args.split("\n");
-  let i = 0;
-  let ret: string = "";
-  for (let arg of argsa) {
-    ret = ret + i + " " + arg;
-    i++;
-  }
-  return ret;
-}
 function call_fn(this: cmd_info) {
   const fnc = Function("args", this.fn.body);
-  return fnc(this.fn.args);
+  fnc(this.fn.args);
 }
-interface Function_holder {
-  [key: string]: Function;
-}
-const funcs: Function_holder = { create_cmd: create_cmd, call_fn: call_fn };
 
 let commands: cmd_info;
-function populate_func(root_cmd: cmd_info) {
-  root_cmd.func = funcs[root_cmd.fn.body];
-  for (let child_cmd of root_cmd.children) {
-    populate_func(child_cmd);
-  }
-}
 fs.readFile("data/commands.json", function (err: any, data: string) {
   if (err) throw err;
   commands = JSON.parse(data);
-  populate_func(commands);
-  //console.log("pretty\n");
-  //console.log(prettify(commands));
-  //console.log("\npretty\n");
+  console.log("pretty\n");
+  console.log(prettify(commands));
+  console.log("\npretty\n");
 });
-
 //commands.children[0].func = to_fnc(commands.children[0].fn);
 
-//console.log(process.env.DB_USER);
+console.log(process.env.DB_USER);
 TKinit(
   process.env?.DB_USER || "no",
   process.env?.DB_PASS || "no",
   process.env?.DB_NAME || "no",
 );
-
 import {
   ButtonColor,
   ButtonColorUnion,
@@ -82,7 +58,7 @@ const hearManager = new HearManager();
 
 vk.updates.on("message_new", (context: MessageContext, next: Function) => {
   const { messagePayload } = context;
-  //console.log(messagePayload);
+  console.log(messagePayload);
   context.state.command =
     messagePayload && messagePayload.command ? messagePayload.command : null;
 
@@ -124,7 +100,7 @@ async function testreply(context: MessageContext) {
 
 async function splitsend(context: MessageContext, message_text: String) {
   const MAX_LEN = 2000;
-  //console.log(message_text);
+  //console.log(message_text)
   for (let i = 0; i <= message_text.length; i += MAX_LEN) {
     const slice = message_text.slice(
       i,
@@ -139,8 +115,8 @@ hearManager.hear(RegExp(""), figure);
 async function figure(context: MessageContext) {
   const cmd: cmd_info | null = figure_out(context?.text || "", commands);
   if (cmd) {
-    const ans: string = await cmd.func();
-    console.log(ans);
+    const ans: sitring = cmd.call_fn();
+
     await splitsend(context, ans);
   } else {
     //await splitsend(context, "Команда не ясна.");

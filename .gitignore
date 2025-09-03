@@ -1,4 +1,5 @@
 build
 .env
 .env.keys
+test.ts
 node_modules

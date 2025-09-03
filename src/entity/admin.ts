@@ -17,6 +17,9 @@ export class command {
 	@Column({type: "varchar", nullable: true})
 	area: string;
 
+	@Column({type: "int", nullable: true})
+	parent_id: number;
+
 	@Column({type: "int"})
 	access: number;
 
@@ -25,12 +28,14 @@ export class command {
 		alias: string,
 		doc: string,
 		area: string,
+		parent_id: number,
 		access: number,
 	) {
 		this.name = name;
 		this.alias = alias;
 		this.doc = doc;
 		this.area = area;
+		this.parent_id = parent_id;
 		this.access = access;
 	}
 }
